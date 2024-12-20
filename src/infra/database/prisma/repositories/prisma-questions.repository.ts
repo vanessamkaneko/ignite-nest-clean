@@ -5,11 +5,16 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma.service";
 import { PrismaQuestionMapper } from "../mappers/prisma-question-mapper";
 import { IQuestionAttachmentsRepository } from "@/domain/forum/application/repositories/IQuestionAttachments.repository";
+import { QuestionDetails } from "@/domain/forum/enterprise/entities/value-objects/question-details";
+import { PrismaQuestionDetailsMapper } from "../mappers/prisma-question-details-mapper";
+import { DomainEvents } from "@/core/events/domain-events";
+import { ICacheRepository } from "@/infra/cache/ICache.repository";
 
 @Injectable()
 export class PrismaQuestionsRepository implements IQuestionsRepository {
   constructor(
     private prisma: PrismaService,
+    private cache: ICacheRepository,
     private questionAttachmentsRepository: IQuestionAttachmentsRepository
   ) { }
 
@@ -41,6 +46,36 @@ export class PrismaQuestionsRepository implements IQuestionsRepository {
     return PrismaQuestionMapper.toDomain(question)
   }
 
+  async findDetailsBySlug(slug: string): Promise<QuestionDetails | null> {
+    const cacheHit = await this.cache.get(`question:${slug}:details`)
+
+    if (cacheHit) {
+      const cachedData = JSON.parse(cacheHit)
+
+      return PrismaQuestionDetailsMapper.toDomain(cachedData)
+    }
+
+    const question = await this.prisma.question.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        author: true,
+        attachments: true
+      }
+    })
+
+    if (!question) {
+      return null
+    }
+
+    await this.cache.set(`question:${slug}:details`, JSON.stringify(question))
+
+    const questionDetails = PrismaQuestionDetailsMapper.toDomain(question)
+
+    return questionDetails
+  }
+
   async findManyRecent({ page }: PaginationParams): Promise<Question[]> {
     const questions = await this.prisma.question.findMany({
       orderBy: {
@@ -65,6 +100,8 @@ export class PrismaQuestionsRepository implements IQuestionsRepository {
     await this.questionAttachmentsRepository.createMany(
       question.attachments.getItems()
     )
+
+    DomainEvents.dispatchEventsForAggregate(question.id)
   }
 
   async save(question: Question): Promise<void> {
@@ -84,8 +121,11 @@ export class PrismaQuestionsRepository implements IQuestionsRepository {
 
       this.questionAttachmentsRepository.deleteMany(
         question.attachments.getRemovedItems()
-      )
+      ),
+      this.cache.delete(`question:${data.slug}:details`)
     ])
+
+    DomainEvents.dispatchEventsForAggregate(question.id)
   }
 
   async delete(question: Question): Promise<void> {

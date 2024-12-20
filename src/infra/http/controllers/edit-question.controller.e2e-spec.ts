@@ -93,13 +93,15 @@ describe('Edit Question (E2E)', () => {
     })
 
     expect(attachmentsOnDatabase).toHaveLength(2)
-    expect(attachmentsOnDatabase).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: attachment1.id.toString()
-      }),
-      expect.objectContaining({
-        id: attachment3.id.toString()
-      }),
-    ]))
+    expect(attachmentsOnDatabase).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: attachment1.id.toString()
+        }),
+        expect.objectContaining({
+          id: attachment3.id.toString()
+        }),
+      ])
+    )
   })
 })

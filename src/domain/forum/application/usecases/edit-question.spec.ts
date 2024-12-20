@@ -1,3 +1,5 @@
+import { InMemoryAttachmentsRepository } from "test/repositories/in-memory-attachments.repository"
+import { InMemoryStudentsRepository } from "test/repositories/in-memory-students.repository"
 import { makeQuestion } from "../../../../../test/factories/make-question"
 import { makeQuestionAttachment } from "../../../../../test/factories/make-question-attachment"
 import { InMemoryQuestionAttachmentsRepository } from "../../../../../test/repositories/in-memory-question-attachments.repository"
@@ -8,13 +10,19 @@ import { EditQuestionUseCase } from "./edit-question.usecase"
 
 let inMemoryQuestionsRepository: InMemoryQuestionsRepository
 let inMemoryQuestionAttachmentsRepository: InMemoryQuestionAttachmentsRepository
+let inMemoryAttachmentsRepository: InMemoryAttachmentsRepository
+let inMemoryStudentsRepository: InMemoryStudentsRepository
+
 let sut: EditQuestionUseCase
 // sut: system under test
 
 describe('Edit Question', () => {
   beforeEach(() => {
     inMemoryQuestionAttachmentsRepository = new InMemoryQuestionAttachmentsRepository()
-    inMemoryQuestionsRepository = new InMemoryQuestionsRepository(inMemoryQuestionAttachmentsRepository)
+    inMemoryAttachmentsRepository = new InMemoryAttachmentsRepository()
+    inMemoryStudentsRepository = new InMemoryStudentsRepository()
+    inMemoryQuestionsRepository = new InMemoryQuestionsRepository
+    (inMemoryQuestionAttachmentsRepository, inMemoryAttachmentsRepository, inMemoryStudentsRepository)
     sut = new EditQuestionUseCase(inMemoryQuestionsRepository, inMemoryQuestionAttachmentsRepository)
   })
 

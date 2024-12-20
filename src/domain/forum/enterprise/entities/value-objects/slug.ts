@@ -54,6 +54,14 @@ new Question({
 */
 
 
-
 /*value-objects: são propriedades de entidades que possuem regras de negócio atreladas à elas (por ex., alguma propriedade que
-precise de certas formatações, validações...*/
+precise de certas formatações, validações...
+
+- São objetos que são definidos pelos seus valores, e não por uma identidade única.
+- Diferente de entidades, eles não têm um identificador único. Se os atributos forem iguais, eles são equivalentes.
+
+-> Use Value Objects sempre que precisar encapsular um conceito do domínio que:
+
+Seja definido por seus valores, não necessite de uma identidade própria, possa ser imutável e autocontido, 
+exija validação consistente e lógica de comparação.
+*/

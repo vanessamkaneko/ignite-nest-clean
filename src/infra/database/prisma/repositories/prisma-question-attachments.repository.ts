@@ -27,7 +27,6 @@ export class PrismaQuestionAttachmentsRepository implements IQuestionAttachments
       }
     })
   }
-
  
   async createMany(attachments: QuestionAttachment[]): Promise<void> {
     if (attachments.length === 0) {
